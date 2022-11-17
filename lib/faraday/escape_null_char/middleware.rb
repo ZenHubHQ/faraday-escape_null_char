@@ -36,6 +36,19 @@ module Faraday
         # Do something with the response environment...
         # This method is optional.
       end
+
+      def call(environment)
+        @app.call(environment).on_complete do |env|
+          self.class.escape_str(env[:body])
+        end
+      end
+  
+      def self.escape_str(str)
+        str.gsub!(/(\\+)u0000/) do |match|
+          first_group = Regexp.last_match(1)
+          first_group.length.odd? ? "\\#{match}" : match
+        end
+      end
     end
   end
 end
